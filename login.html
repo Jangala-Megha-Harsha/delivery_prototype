@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Foodie</title>
+  <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-box">
+      <div class="auth-header">
+        <div class="logo">
+          <div class="mark">🍴</div>
+          <h3>Welcome Back</h3>
+        </div>
+      </div>
+      
+      <form id="loginForm" onsubmit="login(event)">
+        <div class="input-group">
+          <input type="email" id="email" placeholder="Email address" required>
+          <span class="input-icon">📧</span>
+        </div>
+        
+        <div class="input-group">
+          <input type="password" id="password" placeholder="Password" required>
+          <span class="input-icon">🔒</span>
+        </div>
+        
+        <div class="form-options">
+          <label class="checkbox-container">
+            <input type="checkbox" id="rememberMe">
+            <span class="checkmark"></span>
+            Remember me
+          </label>
+          <a href="#" class="forgot-link">Forgot Password?</a>
+        </div>
+        
+        <button type="submit" id="authSubmit">
+          <span class="button-text">Sign In</span>
+          <div class="loading-spinner" style="display: none;"></div>
+        </button>
+      </form>
+      
+      <div class="divider">
+        <span>or continue with</span>
+      </div>
+      
+      <div class="social-buttons">
+        <button class="social-btn google-btn" onclick="socialLogin('google')">
+          <span>🔍</span> Google
+        </button>
+        <button class="social-btn facebook-btn" onclick="socialLogin('facebook')">
+          <span>📘</span> Facebook
+        </button>
+      </div>
+      
+      <div class="auth-footer">
+        <p>Don't have an account? <a href="signup.html" class="auth-link">Sign Up</a></p>
+        <a href="index.html" class="back-link">← Back to Home</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function login(e) {
+      e.preventDefault();
+      
+      const submitBtn = document.getElementById('authSubmit');
+      const buttonText = submitBtn.querySelector('.button-text');
+      const spinner = submitBtn.querySelector('.loading-spinner');
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      // Validate inputs
+      if (!email || !password) {
+        showMessage('Please fill in all fields', 'error');
+        return;
+      }
+      
+      // Show loading state
+      buttonText.style.display = 'none';
+      spinner.style.display = 'inline-block';
+      submitBtn.disabled = true;
+      
+      // Simulate login process
+      setTimeout(() => {
+        // Reset button state
+        buttonText.style.display = 'inline-block';
+        spinner.style.display = 'none';
+        submitBtn.disabled = false;
+        
+        // Simple validation (in real app, this would be server-side)
+        if (email === 'demo@foodie.com' && password === 'demo123') {
+          showMessage('Login successful! Redirecting...', 'success');
+          
+          // Store user session (in real app, use proper tokens)
+          sessionStorage.setItem('userLoggedIn', 'true');
+          sessionStorage.setItem('userEmail', email);
+          
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1500);
+        } else {
+          showMessage('Invalid email or password', 'error');
+        }
+      }, 1500);
+    }
+    
+    function socialLogin(provider) {
+      showMessage(`${provider} login would be implemented here`, 'info');
+    }
+    
+    function showMessage(message, type) {
+      // Remove existing messages
+      const existingMsg = document.querySelector('.message');
+      if (existingMsg) {
+        existingMsg.remove();
+      }
+      
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${type}`;
+      messageDiv.textContent = message;
+      
+      const authBox = document.querySelector('.auth-box');
+      authBox.insertBefore(messageDiv, authBox.firstChild);
+      
+      // Auto-remove after 3 seconds
+      setTimeout(() => {
+        if (messageDiv) {
+          messageDiv.remove();
+        }
+      }, 3000);
+    }
+    
+    // Add some interactivity
+    document.addEventListener('DOMContentLoaded', function() {
+      const inputs = document.querySelectorAll('input');
+      
+      inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+          this.parentElement.classList.add('focused');
+        });
+        
+        input.addEventListener('blur', function() {
+          if (!this.value) {
+            this.parentElement.classList.remove('focused');
+          }
+        });
+      });
+      
+      // Demo credentials hint
+      setTimeout(() => {
+        showMessage('Demo: email: demo@foodie.com, password: demo123', 'info');
+      }, 1000);
+    });
+  </script>
+</body>
+</html>

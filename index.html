@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Foodie - Food Delivery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <div class="mark">🍴</div>
+      Foodie
+    </div>
+    <div class="search">
+      <input type="text" placeholder="Search dishes..." id="searchInput"/>
+    </div>
+    <div class="controls">
+      <a class="pill link" href="login.html">Login</a>
+      <a class="pill link" href="signup.html">Sign Up</a>
+    </div>
+  </header>
+
+  <main>
+    <aside class="sidebar">
+      <div class="filters">
+        <h4>Categories</h4>
+        <div class="category">
+          <div class="cat-item active" onclick="filterCategory('all')">All</div>
+          <div class="cat-item" onclick="filterCategory('pizza')">Pizza</div>
+          <div class="cat-item" onclick="filterCategory('burgers')">Burgers</div>
+          <div class="cat-item" onclick="filterCategory('indian')">Indian</div>
+          <div class="cat-item" onclick="filterCategory('pasta')">Pasta</div>
+          <div class="cat-item" onclick="filterCategory('desserts')">Desserts</div>
+        </div>
+      </div>
+    </aside>
+
+    <section class="menu-area">
+      <div class="toolbar">
+        <h2>Popular Dishes</h2>
+        <select class="sort-select" onchange="sortDishes(this.value)">
+          <option value="name">Sort by Name</option>
+          <option value="price-low">Price: Low to High</option>
+          <option value="price-high">Price: High to Low</option>
+        </select>
+      </div>
+      <div class="cards" id="dishGrid"></div>
+    </section>
+
+    <aside class="cart">
+      <h3>Your Cart</h3>
+      <div id="cartItems"></div>
+      <div class="cart-total">
+        <div class="line">
+          <strong>Total: ₹<span id="cartTotal">0</span></strong>
+        </div>
+      </div>
+      <button class="checkout" onclick="checkout()">Checkout</button>
+    </aside>
+  </main>
+
+  <footer>© 2025 Foodie. All rights reserved.</footer>
+
+  <script>
+    const dishes = [
+      {name: 'Margherita Pizza', price: 280, img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRP0HbRY0SsECXq3XHqjXUBw3CqK1VfE5PX1w&s', category: 'pizza', rating: 4.5},
+      {name: 'Cheese Burger', price: 120, img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2yPBW5U-3dGuvwV0Bcr1jcGUNS-l6k7EGrQ&s', category: 'burgers', rating: 4.2},
+      {name: 'Veggie Pizza', price: 250, img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRGsO8_BXeu1PTx2mLrb7OPazuxz4hJp273FQ&s', category: 'pizza', rating: 4.3},
+      {name: 'Pasta Alfredo', price: 200, img: 'https://www.allrecipes.com/thmb/ziUOvj4f_me5yvZhYCUy0n4IKbQ=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/276725-creamy-chicken-alfredo-VAT-001-Beauty-4x3-c4b026db5cb349f4b8fd627c56f91a42.jpg', category: 'pasta', rating: 4.4},
+      {name: 'Chicken Biryani', price: 300, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhoFARcCqxGEQAv-lxRL9_6QnaUOY-zIUAvCOzkUoKbNk6URYGexQZEUYoWsPfKOQ_Yl8hWGAkMK2WDtXlW2YjFAdbvYzLa0zA3p8k7MytP_d4YfQiB-gx1lKKMMwUMyhm3GdkAOBt2IDNi/s1600/Chicken+Biryani+4.jpg', category: 'indian', rating: 4.7},
+      {name: 'Paneer Tikka', price: 180, img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKVj2JCr6EpaMTr_qp3XRn4yk07q1a4W46bg&s', category: 'indian', rating: 4.1},
+      {name: 'BBQ Burger', price: 150, img: 'https://www.tasteofhome.com/wp-content/uploads/2017/09/exps28800_UG143377D12_18_1b_RMS.jpg', category: 'burgers', rating: 4.3},
+      {name: 'Chocolate Cake', price: 80, img: 'https://assets.winni.in/product/primary/2024/3/94564.jpeg?dpr=2&w=220', category: 'desserts', rating: 4.6},
+      {name: 'Penne Arrabiata', price: 220, img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRNUxa9qyavsLpLxuk7NFp2vjhHGY4MFYWDQ&s', category: 'pasta', rating: 4.2},
+      {name: 'Ice Cream Sundae', price: 60, img: 'https://www.thespruceeats.com/thmb/3QatTcsVjKeDVCD-rIeUa4fSRAs=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/perfect-banana-split-recipe-305712-hero-01-ef0482a539394da0b5ba64ade0c73b98.jpg', category: 'desserts', rating: 4.0}
+    ];
+    
+    let cart = [];
+    let filteredDishes = [...dishes];
+    let currentCategory = 'all';
+    
+    const grid = document.getElementById('dishGrid');
+    const cartItems = document.getElementById('cartItems');
+    const cartTotal = document.getElementById('cartTotal');
+    const searchInput = document.getElementById('searchInput');
+
+    function renderMenu() {
+      grid.innerHTML = '';
+      filteredDishes.forEach((dish, i) => {
+        const originalIndex = dishes.findIndex(d => d.name === dish.name);
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="thumb">
+            <img src="${dish.img}" alt="${dish.name}" loading="lazy"/>
+          </div>
+          <div class="title-row">
+            <strong>${dish.name}</strong>
+            <span class="price">₹${dish.price}</span>
+          </div>
+          <div class="meta">⭐ ${dish.rating} • ${dish.category}</div>
+          <div class="actions">
+            <button class="btn" onclick="addToCart(${originalIndex})">Add to Cart</button>
+          </div>`;
+        grid.appendChild(card);
+      });
+    }
+
+    function addToCart(dishIndex) {
+      const dish = dishes[dishIndex];
+      const existingItem = cart.find(item => item.name === dish.name);
+      
+      if (existingItem) {
+        existingItem.quantity += 1;
+      } else {
+        cart.push({...dish, quantity: 1});
+      }
+      
+      renderCart();
+      
+      // Add visual feedback
+      const button = event.target;
+      button.style.background = '#22c55e';
+      button.textContent = 'Added!';
+      setTimeout(() => {
+        button.style.background = '';
+        button.textContent = 'Add to Cart';
+      }, 1000);
+    }
+
+    function removeFromCart(itemName) {
+      const itemIndex = cart.findIndex(item => item.name === itemName);
+      if (itemIndex > -1) {
+        if (cart[itemIndex].quantity > 1) {
+          cart[itemIndex].quantity -= 1;
+        } else {
+          cart.splice(itemIndex, 1);
+        }
+      }
+      renderCart();
+    }
+
+    function renderCart() {
+      cartItems.innerHTML = '';
+      let total = 0;
+      
+      cart.forEach((item) => {
+        total += item.price * item.quantity;
+        const line = document.createElement('div');
+        line.className = 'cart-item';
+        line.innerHTML = `
+          <div class="cart-item-info">
+            <span class="cart-item-name">${item.name}</span>
+            <span class="cart-item-price">₹${item.price}</span>
+          </div>
+          <div class="qty">
+            <button onclick="removeFromCart('${item.name}')">−</button>
+            <span>${item.quantity}</span>
+            <button onclick="addToCart(${dishes.findIndex(d => d.name === item.name)})">+</button>
+          </div>
+        `;
+        cartItems.appendChild(line);
+      });
+      
+      cartTotal.textContent = total;
+    }
+
+    function filterCategory(category) {
+      currentCategory = category;
+      
+      // Update active category
+      document.querySelectorAll('.cat-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      // Filter dishes
+      if (category === 'all') {
+        filteredDishes = [...dishes];
+      } else {
+        filteredDishes = dishes.filter(dish => dish.category === category);
+      }
+      
+      renderMenu();
+    }
+
+    function sortDishes(sortBy) {
+      switch(sortBy) {
+        case 'name':
+          filteredDishes.sort((a, b) => a.name.localeCompare(b.name));
+          break;
+        case 'price-low':
+          filteredDishes.sort((a, b) => a.price - b.price);
+          break;
+        case 'price-high':
+          filteredDishes.sort((a, b) => b.price - a.price);
+          break;
+      }
+      renderMenu();
+    }
+
+    function checkout() {
+      if (cart.length === 0) {
+        alert('Your cart is empty!');
+        return;
+      }
+      
+      const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      alert(`Order placed successfully! Total: ₹${total}\nThank you for choosing Foodie!`);
+      cart = [];
+      renderCart();
+    }
+
+    // Search functionality
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      if (searchTerm === '') {
+        filteredDishes = currentCategory === 'all' ? [...dishes] : dishes.filter(dish => dish.category === currentCategory);
+      } else {
+        const baseList = currentCategory === 'all' ? dishes : dishes.filter(dish => dish.category === currentCategory);
+        filteredDishes = baseList.filter(dish => 
+          dish.name.toLowerCase().includes(searchTerm)
+        );
+      }
+      renderMenu();
+    });
+
+    // Initialize the app
+    renderMenu();
+    renderCart();
+  </script>
+</body>
+</html>
